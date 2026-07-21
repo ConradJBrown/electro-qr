@@ -83,6 +83,7 @@ generateBtn.addEventListener('click', async () => {
   const text = urlInput.value.trim();
 
   if (!text) {
+    warning.textContent = '⚠ Please enter some text before generating.';
     warning.style.display = 'block';
     return;
   }
