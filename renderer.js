@@ -1,5 +1,3 @@
-const QRCode = require('qrcode');
-
 const urlInput = document.getElementById('url-input');
 const generateBtn = document.getElementById('generate-btn');
 const warning = document.getElementById('warning');
@@ -44,9 +42,9 @@ const commonOptions = {
 // Generate all three QR codes
 async function generateQRCodes(text) {
   const results = await Promise.all([
-    QRCode.toDataURL(text, { ...commonOptions, color: presets.classic }),
-    QRCode.toDataURL(text, { ...commonOptions, color: presets.neon }),
-    QRCode.toDataURL(text, { ...commonOptions, color: presets.eco }),
+    window.electronAPI.generateQR(text, { ...commonOptions, color: presets.classic }),
+    window.electronAPI.generateQR(text, { ...commonOptions, color: presets.neon }),
+    window.electronAPI.generateQR(text, { ...commonOptions, color: presets.eco }),
   ]);
 
   qrClassic.src = results[0];
@@ -69,7 +67,9 @@ function downloadDataURL(dataURL, filename) {
   const a = document.createElement('a');
   a.href = dataURL;
   a.download = filename;
+  document.body.appendChild(a);
   a.click();
+  document.body.removeChild(a);
 }
 
 // Generate button click
