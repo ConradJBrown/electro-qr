@@ -1,38 +1,106 @@
-# 🔲 QR Showroom
+# Electro QR
 
-A fast, offline desktop utility to generate and download custom-styled QR codes from any URL. 
+A fast, offline desktop utility that generates styled QR codes from any URL or text.
 
-Because why use a lightweight website when you can spin up an entire Chromium browser instance to generate a 5 KB image?
+## Features
 
----
+- Instant local QR generation
+- Multiple visual presets (Classic, Neon Midnight, Eco Warm)
+- One-click PNG export
+- Offline and private workflow
 
-## ✨ Features
+## Tech Stack
 
-* **Instant Local Generation:** Convert any URL into QR codes locally—no sketchy online converters required.
-* **Style Options:** Preview multiple preset design themes (Classic, Tech Midnight, Eco Forest) instantly.
-* **One-Click PNG Export:** Download high-resolution PNGs directly to your machine.
-* **100% Offline & Private:** Your URLs never leave your computer.
+- Electron
+- node-qrcode
+- HTML/CSS/JavaScript
 
----
+## Prerequisites
 
-## 🛠️ Tech Stack
+- Node.js 18+
+- npm
 
-* **[Electron](https://www.electronjs.org/)** – Desktop application framework
-* **[node-qrcode](https://github.com/soldair/node-qrcode)** – QR code generation engine
-* **HTML5 / CSS3 / JS** – UI and styling
+## Run Locally
 
----
+1. Clone and enter the repo:
 
-## 🚀 Getting Started
+```bash
+git clone https://github.com/ConradJBrown/electro-qr.git
+cd electro-qr
+```
 
-### Prerequisites
+2. Install dependencies:
 
-* [Node.js](https://nodejs.org/) (v16 or higher)
-* `npm` (comes bundled with Node)
+```bash
+npm install
+```
 
-### Installation & Run
+3. Start the app:
 
-1. **Clone the repository:**
-   ```bash
-   git clone [https://github.com/your-username/qr-showroom.git](https://github.com/your-username/qr-showroom.git)
-   cd qr-showroom
+```bash
+npm start
+```
+
+## Debug Logging
+
+Run with additional diagnostics and auto-opened DevTools:
+
+```bash
+npm run start:debug
+```
+
+When running in debug mode, the terminal shows:
+
+- Renderer console logs and errors
+- Failed page/resource loads
+- Renderer crashes and child process exits
+- Main process uncaught exceptions and unhandled promise rejections
+
+## Build Installers
+
+This project uses electron-builder and outputs artifacts to dist/.
+
+- Build unpacked app only (no installer):
+
+```bash
+npm run pack
+```
+
+- Build Windows installer (NSIS):
+
+```bash
+npm run build:win
+```
+
+- Build macOS DMG:
+
+```bash
+npm run build:mac
+```
+
+- Build Linux packages (AppImage, deb, rpm):
+
+```bash
+npm run build:linux
+```
+
+- Attempt all targets:
+
+```bash
+npm run build:all
+```
+
+## Cross-Platform Notes
+
+- For reliable production builds, run each target on its native OS:
+   - Windows builds on Windows
+   - macOS builds on macOS (required for proper signing/notarization)
+   - Linux builds on Linux
+- Unsigned builds are fine for local testing, but signed installers are recommended for distribution.
+
+## Project Structure
+
+- main.js: Electron main process
+- preload.js: secure renderer bridge
+- renderer.js: UI logic and QR generation
+- index.html: app UI

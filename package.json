@@ -5,6 +5,13 @@
   "main": "main.js",
   "scripts": {
     "start": "electron .",
+    "start:debug": "set ELECTRO_QR_DEBUG=1&& set ELECTRON_ENABLE_LOGGING=1&& set ELECTRON_ENABLE_STACK_DUMPING=1&& electron .",
+    "pack": "electron-builder --dir",
+    "build": "electron-builder",
+    "build:win": "electron-builder --win nsis",
+    "build:mac": "electron-builder --mac dmg",
+    "build:linux": "electron-builder --linux AppImage deb rpm",
+    "build:all": "electron-builder -mwl",
     "test": "echo \"No tests specified\" && exit 0"
   },
   "repository": {
@@ -12,10 +19,55 @@
     "url": "https://github.com/ConradJBrown/electro-qr.git"
   },
   "keywords": [],
-  "author": "",
+  "author": "Conrad Brown",
   "license": "ISC",
+  "engines": {
+    "node": ">=18"
+  },
+  "build": {
+    "appId": "com.conradjbrown.electroqr",
+    "productName": "Electro QR",
+    "directories": {
+      "output": "dist"
+    },
+    "files": [
+      "main.js",
+      "preload.js",
+      "renderer.js",
+      "index.html",
+      "package.json",
+      "node_modules/**/*"
+    ],
+    "win": {
+      "target": [
+        "nsis"
+      ],
+      "artifactName": "${productName}-Setup-${version}.${ext}"
+    },
+    "nsis": {
+      "oneClick": false,
+      "allowToChangeInstallationDirectory": true
+    },
+    "mac": {
+      "target": [
+        "dmg"
+      ],
+      "category": "public.app-category.utilities",
+      "artifactName": "${productName}-${version}-${os}.${ext}"
+    },
+    "linux": {
+      "target": [
+        "AppImage",
+        "deb",
+        "rpm"
+      ],
+      "category": "Utility",
+      "artifactName": "${productName}-${version}-${os}-${arch}.${ext}"
+    }
+  },
   "devDependencies": {
-    "electron": "^43.1.1"
+    "electron": "^43.1.1",
+    "electron-builder": "^26.15.3"
   },
   "dependencies": {
     "qrcode": "^1.5.4"

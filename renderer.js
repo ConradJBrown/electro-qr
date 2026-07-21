@@ -39,27 +39,77 @@ const commonOptions = {
   width: 320,
 };
 
-// Generate all three QR codes
-async function generateQRCodes(text) {
-  const results = await Promise.all([
-    window.electronAPI.generateQR(text, { ...commonOptions, color: presets.classic }),
-    window.electronAPI.generateQR(text, { ...commonOptions, color: presets.neon }),
-    window.electronAPI.generateQR(text, { ...commonOptions, color: presets.eco }),
-  ]);
+function normalizeInput(rawValue) {
+  const normalized = String(rawValue ?? '').normalize('NFKC').trim();
+  // Remove hidden/control characters that can arrive from copy/paste.
+  const withoutHidden = normalized.replace(/[\u0000-\u001F\u007F\u200B-\u200D\u2060\uFEFF]/g, '');
 
-  // Validate each result is a PNG data URL before using it
-  const pngPrefix = 'data:image/png;base64,';
-  if (!results.every((r) => typeof r === 'string' && r.startsWith(pngPrefix))) {
-    throw new Error('Unexpected data URL format returned from QR generation.');
+  // If this looks like a URL, strip all whitespace to avoid wrapped-paste failures.
+  const looksLikeUrl = /^(https?:\/\/|www\.)/i.test(withoutHidden);
+  if (looksLikeUrl) {
+    return withoutHidden.replace(/\s+/g, '');
   }
 
-  qrClassic.src = results[0];
-  qrNeon.src = results[1];
-  qrEco.src = results[2];
+  return withoutHidden;
+}
 
-  dlClassic.disabled = false;
-  dlNeon.disabled = false;
-  dlEco.disabled = false;
+function setCardState(kind, dataUrl) {
+  if (kind === 'classic') {
+    if (dataUrl) qrClassic.src = dataUrl;
+    dlClassic.disabled = !dataUrl;
+    return;
+  }
+
+  if (kind === 'neon') {
+    if (dataUrl) qrNeon.src = dataUrl;
+    dlNeon.disabled = !dataUrl;
+    return;
+  }
+
+  if (dataUrl) qrEco.src = dataUrl;
+  dlEco.disabled = !dataUrl;
+}
+
+// Generate all three QR codes
+async function generateQRCodes(text) {
+  const pngPrefix = 'data:image/png;base64,';
+
+  const jobs = [
+    ['classic', window.electronAPI.generateQR(text, { ...commonOptions, color: presets.classic })],
+    ['neon', window.electronAPI.generateQR(text, { ...commonOptions, color: presets.neon })],
+    ['eco', window.electronAPI.generateQR(text, { ...commonOptions, color: presets.eco })],
+  ];
+
+  const settled = await Promise.allSettled(jobs.map(([, task]) => task));
+  let successCount = 0;
+  const failures = [];
+
+  settled.forEach((result, index) => {
+    const kind = jobs[index][0];
+
+    if (result.status === 'fulfilled' && typeof result.value === 'string' && result.value.startsWith(pngPrefix)) {
+      setCardState(kind, result.value);
+      successCount += 1;
+      return;
+    }
+
+    setCardState(kind, null);
+    if (result.status === 'rejected') {
+      failures.push(`${kind}: ${result.reason?.message || String(result.reason)}`);
+    } else {
+      failures.push(`${kind}: invalid PNG data URL`);
+    }
+  });
+
+  if (successCount === 0) {
+    throw new Error(`All presets failed. ${failures.join(' | ')}`);
+  }
+
+  if (failures.length > 0) {
+    console.warn('Some presets failed:', failures.join(' | '));
+    warning.textContent = '⚠ Some style presets failed. Try again or shorten the input.';
+    warning.style.display = 'block';
+  }
 }
 
 // Show a temporary "Saved!" tooltip on the given element
@@ -80,7 +130,7 @@ function downloadDataURL(dataURL, filename) {
 
 // Generate button click
 generateBtn.addEventListener('click', async () => {
-  const text = urlInput.value.trim();
+  const text = normalizeInput(urlInput.value);
 
   if (!text) {
     warning.textContent = '⚠ Please enter some text before generating.';
@@ -94,7 +144,8 @@ generateBtn.addEventListener('click', async () => {
     await generateQRCodes(text);
   } catch (err) {
     console.error('QR generation error:', err);
-    warning.textContent = '⚠ Failed to generate QR codes. Please try again.';
+    const message = err?.message || 'Unknown error';
+    warning.textContent = `⚠ Failed to generate QR codes. ${message}`;
     warning.style.display = 'block';
   }
 });

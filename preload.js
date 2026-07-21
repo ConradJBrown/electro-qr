@@ -1,6 +1,5 @@
-const { contextBridge } = require('electron');
-const QRCode = require('qrcode');
+const { contextBridge, ipcRenderer } = require('electron');
 
 contextBridge.exposeInMainWorld('electronAPI', {
-  generateQR: (text, options) => QRCode.toDataURL(text, options),
+  generateQR: (text, options) => ipcRenderer.invoke('qr:generate', text, options),
 });
