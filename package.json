@@ -1,0 +1,23 @@
+{
+  "name": "electro-qr",
+  "version": "1.0.0",
+  "description": "A sleek desktop QR code generator built with Electron that turns URLs into styled, downloadable 2D barcodes—using a totally necessary 500MB of RAM.",
+  "main": "main.js",
+  "scripts": {
+    "start": "electron .",
+    "test": "echo \"No tests specified\" && exit 0"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/ConradJBrown/electro-qr.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "electron": "^43.1.1"
+  },
+  "dependencies": {
+    "qrcode": "^1.5.4"
+  }
+}

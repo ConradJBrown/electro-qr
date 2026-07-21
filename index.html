@@ -1,0 +1,243 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Electro QR</title>
+  <style>
+    *, *::before, *::after {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      background-color: #0f1117;
+      color: #e0e0e0;
+      font-family: 'Segoe UI', system-ui, sans-serif;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 32px 16px;
+    }
+
+    h1 {
+      font-size: 1.8rem;
+      font-weight: 700;
+      letter-spacing: 0.04em;
+      color: #00d4ff;
+      margin-bottom: 8px;
+    }
+
+    .subtitle {
+      font-size: 0.85rem;
+      color: #666;
+      margin-bottom: 28px;
+    }
+
+    /* Input zone */
+    .input-zone {
+      display: flex;
+      gap: 10px;
+      width: 100%;
+      max-width: 680px;
+      margin-bottom: 12px;
+    }
+
+    #url-input {
+      flex: 1;
+      padding: 12px 16px;
+      background: #1a1d27;
+      border: 1px solid #2e3245;
+      border-radius: 8px;
+      color: #e0e0e0;
+      font-size: 0.95rem;
+      outline: none;
+      transition: border-color 0.2s;
+    }
+
+    #url-input:focus {
+      border-color: #00d4ff;
+    }
+
+    #generate-btn {
+      padding: 12px 22px;
+      background: #00d4ff;
+      color: #0f1117;
+      border: none;
+      border-radius: 8px;
+      font-size: 0.9rem;
+      font-weight: 700;
+      cursor: pointer;
+      transition: background 0.2s, transform 0.1s;
+    }
+
+    #generate-btn:hover {
+      background: #00b8e0;
+    }
+
+    #generate-btn:active {
+      transform: scale(0.97);
+    }
+
+    /* Warning message */
+    #warning {
+      display: none;
+      color: #ff6b6b;
+      font-size: 0.82rem;
+      margin-bottom: 16px;
+      height: 18px;
+    }
+
+    /* Card grid */
+    .card-grid {
+      display: flex;
+      gap: 20px;
+      flex-wrap: wrap;
+      justify-content: center;
+      width: 100%;
+      max-width: 760px;
+    }
+
+    .card {
+      background: #1a1d27;
+      border: 1px solid #2e3245;
+      border-radius: 12px;
+      padding: 20px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 12px;
+      flex: 1 1 200px;
+      max-width: 220px;
+      transition: border-color 0.2s, box-shadow 0.2s;
+    }
+
+    .card:hover {
+      border-color: #00d4ff44;
+      box-shadow: 0 0 16px #00d4ff22;
+    }
+
+    .card-title {
+      font-size: 0.78rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: #888;
+    }
+
+    .card-label {
+      font-size: 0.72rem;
+      color: #555;
+      text-align: center;
+    }
+
+    .qr-preview {
+      width: 160px;
+      height: 160px;
+      border-radius: 8px;
+      background: #111;
+      object-fit: contain;
+    }
+
+    .download-btn {
+      padding: 8px 18px;
+      background: transparent;
+      border: 1px solid #2e3245;
+      border-radius: 6px;
+      color: #aaa;
+      font-size: 0.8rem;
+      cursor: pointer;
+      transition: border-color 0.2s, color 0.2s, background 0.2s;
+      position: relative;
+    }
+
+    .download-btn:hover {
+      border-color: #00d4ff;
+      color: #00d4ff;
+    }
+
+    .download-btn:disabled {
+      opacity: 0.35;
+      cursor: default;
+    }
+
+    /* Tooltip */
+    .tooltip {
+      position: absolute;
+      bottom: calc(100% + 6px);
+      left: 50%;
+      transform: translateX(-50%);
+      background: #00d4ff;
+      color: #0f1117;
+      font-size: 0.72rem;
+      font-weight: 700;
+      padding: 3px 10px;
+      border-radius: 4px;
+      white-space: nowrap;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.2s;
+    }
+
+    .tooltip.show {
+      opacity: 1;
+    }
+  </style>
+</head>
+<body>
+  <h1>⚡ Electro QR</h1>
+  <p class="subtitle">Generate styled QR codes in one click</p>
+
+  <div class="input-zone">
+    <input
+      id="url-input"
+      type="text"
+      placeholder="Enter a URL or text…"
+      autocomplete="off"
+      spellcheck="false"
+    />
+    <button id="generate-btn">Generate Options</button>
+  </div>
+
+  <p id="warning">⚠ Please enter some text before generating.</p>
+
+  <div class="card-grid">
+    <!-- Card 1: Classic -->
+    <div class="card" id="card-classic">
+      <span class="card-title">The Classic</span>
+      <img class="qr-preview" id="qr-classic" src="data:," alt="Classic QR code" />
+      <span class="card-label">Black on white — reliable &amp; timeless</span>
+      <button class="download-btn" id="dl-classic" disabled>
+        ↓ Download PNG
+        <span class="tooltip" id="tip-classic" aria-hidden="true">Saved!</span>
+      </button>
+    </div>
+
+    <!-- Card 2: Neon Midnight -->
+    <div class="card" id="card-neon">
+      <span class="card-title">Neon Midnight</span>
+      <img class="qr-preview" id="qr-neon" src="data:," alt="Neon Midnight QR code" />
+      <span class="card-label">Cyan on dark — very tech startup</span>
+      <button class="download-btn" id="dl-neon" disabled>
+        ↓ Download PNG
+        <span class="tooltip" id="tip-neon" aria-hidden="true">Saved!</span>
+      </button>
+    </div>
+
+    <!-- Card 3: Eco Warm -->
+    <div class="card" id="card-eco">
+      <span class="card-title">Eco Warm</span>
+      <img class="qr-preview" id="qr-eco" src="data:," alt="Eco Warm QR code" />
+      <span class="card-label">Forest green on off-white — earthy &amp; calm</span>
+      <button class="download-btn" id="dl-eco" disabled>
+        ↓ Download PNG
+        <span class="tooltip" id="tip-eco" aria-hidden="true">Saved!</span>
+      </button>
+    </div>
+  </div>
+
+  <script src="renderer.js"></script>
+</body>
+</html>
