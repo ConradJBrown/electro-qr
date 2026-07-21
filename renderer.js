@@ -47,6 +47,12 @@ async function generateQRCodes(text) {
     window.electronAPI.generateQR(text, { ...commonOptions, color: presets.eco }),
   ]);
 
+  // Validate each result is a PNG data URL before using it
+  const pngPrefix = 'data:image/png;base64,';
+  if (!results.every((r) => typeof r === 'string' && r.startsWith(pngPrefix))) {
+    throw new Error('Unexpected data URL format returned from QR generation.');
+  }
+
   qrClassic.src = results[0];
   qrNeon.src = results[1];
   qrEco.src = results[2];
@@ -87,6 +93,8 @@ generateBtn.addEventListener('click', async () => {
     await generateQRCodes(text);
   } catch (err) {
     console.error('QR generation error:', err);
+    warning.textContent = '⚠ Failed to generate QR codes. Please try again.';
+    warning.style.display = 'block';
   }
 });
 
@@ -99,6 +107,7 @@ urlInput.addEventListener('keydown', (e) => {
 urlInput.addEventListener('input', () => {
   if (urlInput.value.trim()) {
     warning.style.display = 'none';
+    warning.textContent = '⚠ Please enter some text before generating.';
   }
 });
 
