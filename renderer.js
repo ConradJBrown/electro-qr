@@ -39,6 +39,8 @@ const commonOptions = {
   width: 320,
 };
 
+let lastGeneratedText = '';
+
 function normalizeInput(rawValue) {
   const normalized = String(rawValue ?? '').normalize('NFKC').trim();
   // Remove hidden/control characters that can arrive from copy/paste.
@@ -51,6 +53,34 @@ function normalizeInput(rawValue) {
   }
 
   return withoutHidden;
+}
+
+function getDownloadSiteSlug(value) {
+  const normalized = normalizeInput(value);
+  if (!normalized) return 'qr';
+
+  const hasScheme = /^[a-z][a-z\d+\-.]*:\/\//i.test(normalized);
+  const candidate = hasScheme ? normalized : (/^www\./i.test(normalized) ? `https://${normalized}` : null);
+
+  if (!candidate) return 'qr';
+
+  try {
+    const hostname = new URL(candidate).hostname.toLowerCase().replace(/^www\d*\./, '');
+    const firstLabel = hostname.split('.').find(Boolean) || hostname;
+    const safeSlug = firstLabel
+      .replace(/[^a-z0-9-]/g, '-')
+      .replace(/-+/g, '-')
+      .replace(/^-|-$/g, '');
+
+    return safeSlug || 'qr';
+  } catch {
+    return 'qr';
+  }
+}
+
+function buildDownloadFilename(styleName) {
+  const siteSlug = getDownloadSiteSlug(lastGeneratedText || urlInput.value);
+  return `${siteSlug}-qr-${styleName}.png`;
 }
 
 function setCardState(kind, dataUrl) {
@@ -142,6 +172,7 @@ generateBtn.addEventListener('click', async () => {
 
   try {
     await generateQRCodes(text);
+    lastGeneratedText = text;
   } catch (err) {
     console.error('QR generation error:', err);
     const message = err?.message || 'Unknown error';
@@ -165,16 +196,16 @@ urlInput.addEventListener('input', () => {
 
 // Download handlers
 dlClassic.addEventListener('click', () => {
-  downloadDataURL(qrClassic.src, 'qr-classic.png');
+  downloadDataURL(qrClassic.src, buildDownloadFilename('classic'));
   showTooltip(tipClassic);
 });
 
 dlNeon.addEventListener('click', () => {
-  downloadDataURL(qrNeon.src, 'qr-neon-midnight.png');
+  downloadDataURL(qrNeon.src, buildDownloadFilename('neon-midnight'));
   showTooltip(tipNeon);
 });
 
 dlEco.addEventListener('click', () => {
-  downloadDataURL(qrEco.src, 'qr-eco-warm.png');
+  downloadDataURL(qrEco.src, buildDownloadFilename('eco-warm'));
   showTooltip(tipEco);
 });
